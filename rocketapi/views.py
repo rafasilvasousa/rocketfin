@@ -1,11 +1,15 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Account, Payment, Payee
 from .serializers import LoginSerializer, AccountSerializer, PaymentSerializer, UserSerializer, PayeeSerializer
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import PaymentFilter, AccountFilter, PayeeFilter
 
 # Create your views here.
 
@@ -61,6 +65,8 @@ class CheckUsernameViewSet(viewsets.ViewSet):
 class AccountViewSet(viewsets.ModelViewSet):
     serializer_class = AccountSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = AccountFilter
 
     def get_queryset(self):
         user = self.request.user
@@ -76,6 +82,10 @@ class AccountViewSet(viewsets.ModelViewSet):
             payee = Payee.objects.get(id=payee_id)
         except Payee.DoesNotExist:
             return Response({'error': 'This payee does not exist'}, status=400)
+
+        existing_account = Account.objects.filter(bank=serializer.validated_data['bank'], agency=serializer.validated_data['agency'], account=serializer.validated_data['account'], payee=payee.id).exists()
+        if existing_account:
+            return Response({'error': 'This account is already registered'}, status=400)
         
         serializer.save(payee=payee)
         headers = self.get_success_headers(serializer.data)
@@ -85,7 +95,8 @@ class AccountViewSet(viewsets.ModelViewSet):
 class PayeeViewSet(viewsets.ModelViewSet):
     serializer_class = PayeeSerializer
     permission_classes = [IsAuthenticated]
-
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PayeeFilter
     # Aqui definimos que o usuário só pode ver os payees que ele mesmo criou, a menos que seja superuser, nesse caso ele pode ver todos os payees
     def get_queryset(self):
         user = self.request.user
@@ -123,6 +134,8 @@ class PayeeViewSet(viewsets.ModelViewSet):
 class PaymentViewSet(viewsets.ModelViewSet):
     
     serializer_class = PaymentSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PaymentFilter
 
     def get_queryset(self):
         user = self.request.user
@@ -147,3 +160,16 @@ class PaymentViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=201, headers=headers)
+    
+    
+    def partial_update(self, request):
+        payment_id = request.data.get('payment_id')
+        status = request.data.get('status')
+        if status:
+            payment = Payment.objects.get(id=payment_id)
+            payment.status = status
+            payment.save()
+            return Response({'status': 'Payment status updated successfully'}, status=200)
+        else:
+            return Response({'error': 'Status not provided'}, status=400)
+        

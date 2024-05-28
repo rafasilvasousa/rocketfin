@@ -14,11 +14,7 @@ services:
     volumes:
       - D:/rocket-fin/mysql:/var/lib/mysql
   
-  redis:
-    image: redis:latest
-    container_name: redis-rocket-container
-    ports:
-      - "6379:6379"
+
 
   web:
     build: .
@@ -31,25 +27,12 @@ services:
     depends_on:
       - db
 
-  celery:
+  cron:
     build: .
-    container_name: celery-rocket-container
-    command: ["celery", "-A", "rocketfin", "worker", "--loglevel=info"]
+    container_name: cron-container
     volumes:
       - .:/app
-    depends_on:
-      - db
-      - redis
-
-  celery-beat:
-    build: .
-    container_name: celery-beat-rocket-container
-    command: ["celery", "-A", "rocketfin", "beat", "--loglevel=info"]
-    volumes:
-      - .:/app
-    depends_on:
-      - db
-      - redis
+    command: ["cron", "-f"]  
 
 volumes:
   mysql_data:

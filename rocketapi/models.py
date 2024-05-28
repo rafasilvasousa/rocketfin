@@ -31,7 +31,7 @@ class Payment(models.Model):
     )
     value = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField(default=None, null=True, blank=True)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='S')
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     payee = models.ForeignKey(Payee, on_delete=models.CASCADE, related_name='payments')
     account = models.ForeignKey(Account, on_delete=models.CASCADE)

@@ -3,7 +3,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from rocketapi.models import Payee, Account
+from rocketapi.models import Payee, Account, Payment
 
 
 # Create your tests here.
@@ -153,3 +153,72 @@ class PaymentViewTest(TestCase):
     def teste_create_payment_with_invalid_data(self):
         response = self.client.post(self.payment_url, {'value': 100.00, 'status': 'S', 'payee': self.payee_id, 'payment_date':'2022-05-10', 'account': self.account_id}, format='json')
         self.assertEqual(response.status_code, 400)
+
+class PayeeListTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='rafaelteste', password='r4f43l', first_name='Rafael', last_name='Henrique', email='r@tanana.com')
+        self.token = RefreshToken.for_user(self.user).access_token
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+        self.payee_url = '/payees/'
+        Payee.objects.create(name='Rafael', cpfcnpj='12345678901', payee_type='P', user=self.user)
+        Payee.objects.create(name='Henrique', cpfcnpj='12345678901', payee_type='P', user=self.user)
+        Payee.objects.create(name='Rafael Henrique', cpfcnpj='123456789', payee_type='P', user=self.user)
+
+    def test_list_payees(self):
+        response = self.client.get(self.payee_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 3)
+
+class AccountListTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='rafaelteste', password='r4f43l', first_name='Rafael', last_name='Henrique', email='r@tananan.com')
+        self.token = RefreshToken.for_user(self.user).access_token
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+        self.account_url = '/accounts/'
+        payee = Payee.objects.create(name='Rafael', cpfcnpj='12345678901', payee_type='P', user=self.user)
+        Account.objects.create(bank='Nubank', agency='000', account='123', payee=payee)
+        Account.objects.create(bank='Itau', agency='000', account='123', payee=payee)
+        Account.objects.create(bank='Bradesco', agency='000', account='123', payee=payee)
+                               
+    def test_list_accounts(self):
+        response = self.client.get(self.account_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 3)
+
+class PaymentListTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='rafaelteste', password='r4f43l', first_name='Rafael', last_name='Henrique', email='r@tananan.com')
+        self.token = RefreshToken.for_user(self.user).access_token
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+        self.payment_url = '/payments/'
+        payee = Payee.objects.create(name='Rafael', cpfcnpj='12345678901', payee_type='P', user=self.user)
+        account = Account.objects.create(bank='Nubank', agency='000', account='123', payee=payee)
+        Payment.objects.create(value=100.00, status='S', payee=payee, payment_date='2024-05-28', account=account, user=self.user)
+        Payment.objects.create(value=100.00, status='S', payee=payee, payment_date='2024-05-28', account=account, user=self.user)
+        Payment.objects.create(value=100.00, status='S', payee=payee, payment_date='2024-05-28', account=account, user=self.user)
+
+    def test_list_payments(self):
+        response = self.client.get(self.payment_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 3)
+
+class UpdatePaymentStatusTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='rafaelteste', password='r4f43l', first_name='Rafael', last_name='Henrique', email='r@tananan.com')
+        self.token = RefreshToken.for_user(self.user).access_token
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+        self.payment_url = '/payments/'
+        payee = Payee.objects.create(name='Rafael', cpfcnpj='12345678901', payee_type='P', user=self.user)
+        account = Account.objects.create(bank='Nubank', agency='000', account='123', payee=payee)
+        self.payment = Payment.objects.create(value=100.00, status='S', payee=payee, payment_date='2024-05-28', account=account, user=self.user)
+        self.payment_id = self.payment.id
+
+    def test_update_payment_status(self):
+        response = self.client.patch(self.payment_url, {'payment_id': self.payment_id, 'status': 'P'}, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual('status' in response.data, True)
+                                             

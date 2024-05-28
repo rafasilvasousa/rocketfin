@@ -50,7 +50,6 @@ class PayeeSerializer(serializers.ModelSerializer):
 
 class PaymentSerializer(serializers.ModelSerializer):
     value = serializers.DecimalField(max_digits=10, decimal_places=2)
-    status = serializers.CharField()
     payment_date = serializers.DateField(required=True)
     class Meta:
         model = Payment
