@@ -17,7 +17,7 @@ O Docker precisa estar instalado no sistema.
 ## Construir Imagem Docker
 1. Clonar esse repositorio
  ```bash
-   git clone https://github.com/seu-usuario/rocketfin.git
+   git clone https://github.com/rafasilvasousa/rocketfin.git
    ```
 2. Navegue ate o dicionario clonado
  ```bash
