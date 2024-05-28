@@ -11,8 +11,8 @@ services:
       MYSQL_PASSWORD: R0ckeTDB
     ports:
       - "3307:3306"
-    volumes:
-      - D:/rocket-fin/mysql:/var/lib/mysql
+    #volumes:
+    #  - D:/rocket-fin/mysql:/var/lib/mysql
   
 
 
