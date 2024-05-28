@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: mysql-rocket-container
+    environment:
+      MYSQL_ROOT_PASSWORD: r0cketf!n
+      MYSQL_DATABASE: rocket
+      MYSQL_USER: djangodb
+      MYSQL_PASSWORD: R0ckeTDB
+    ports:
+      - "3307:3306"
+    volumes:
+      - D:/rocket-fin/mysql:/var/lib/mysql
+  
+  redis:
+    image: redis:latest
+    container_name: redis-rocket-container
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    container_name: django-rocket-container
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  celery:
+    build: .
+    container_name: celery-rocket-container
+    command: ["celery", "-A", "rocketfin", "worker", "--loglevel=info"]
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+
+  celery-beat:
+    build: .
+    container_name: celery-beat-rocket-container
+    command: ["celery", "-A", "rocketfin", "beat", "--loglevel=info"]
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  mysql_data:
