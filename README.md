@@ -1,4 +1,4 @@
-#RockectFin - Instrucoes
+# RockectFin - Instrucoes
 
 Esse projeto Dockerizado de uma webapi baseado na seguinte estoria de usuario:
 
