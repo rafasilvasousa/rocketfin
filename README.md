@@ -28,10 +28,42 @@ O Docker precisa estar instalado no sistema.
 docker build -t rocket-fin:latest .
 ```
 
-# Execucao da imagem Docker
+4. Execucao da imagem Docker
 ```bash
 docker-compose up --build
 ```
+
+5. Usar o seguinte comando para logar como root no banco:
+```bash
+docker exec -it mysql-rocket-container mysql -uroot -p
+```
+Senha: r0cketf!n
+
+
+Aqui talvez será necessario criar o banco com o nome 'rocket' se ele nao existir.
+Nos meus teste, foi necessario criar o banco uma vez somente, todas as vezes que reconstrui a imagem docker, o banco ja exisita. Não consigo afirmar se vai estar presente ao gerar a imagem a primeira vez.
+
+
+
+6. Acesse o bash do container django-rocket-container
+```bash
+docker exec -it django-rocket-container bash
+```
+
+7. Executar as migracoes
+```bash
+python manage.py migrate
+
+```
+
+8. Criar um super usuario para testar as requests
+```bash
+python manage.py createsuperuser
+```
+Seguir as intrucoes do terminal.
+
+
+
 
 A Api estara em execucao na porta 8000
 
