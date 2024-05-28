@@ -6,6 +6,9 @@ COPY requirements.txt requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Executar migrações do Django
+RUN python manage.py migrate
+
 RUN apt-get update && apt-get install -y cron
 
 #DELETE CRON
